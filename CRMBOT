@@ -12,6 +12,12 @@ logging.basicConfig(filename = "log.log", format='%(asctime)s - %(name)s - %(lev
 
 bot=telebot.TeleBot(config.TOKEN)
 
+user_dict = {}
+
+class User:
+    def __init__(self, name):
+        self.name = name        
+
 @bot.message_handler(commands = ['s'])
 def button(message):      
     markup=types.ReplyKeyboardMarkup(resize_keyboard = True, row_width = 3)
@@ -24,72 +30,80 @@ def button(message):
     btm2=types.KeyboardButton('Дополнить Заявку 🛠')
     btm3=types.KeyboardButton('Удалить Заявку ⛔️') 
     markup.add(btm1, btm2, btm3)
-    bot.send_message(message.chat.id, 'Бот запущен!', reply_markup = markup)
+    msg = bot.send_message(message.chat.id, 'Бот запущен!', reply_markup = markup)
+    bot.register_next_step_handler(msg, next_step_handler)
+ 
+@bot.message_handler(content_types = ['text', 'document', 'photo', 'audio', 'video', 'voice'])
+def next_step_handler(message):     
+    try:        
+        chat_id = message.chat.id
+        name = message.from_user.id
+        user = User(name)
+        user_dict[chat_id] = user
+         
+        if message.text == 'Контакты и Инструкции📱':
+            bot.send_message(message.chat.id, "Телефон тех поддержки: 8633032064 доб. ххх".format(message.from_user, bot.get_me(),
+        parse_mode='html'))
+            markup=types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton("Инструкция_1 ⚙️", url = "https://yandex.ru/search/?clid=2437996&text=z&l10n=ru&lr=39"))
+            markup.add(types.InlineKeyboardButton("Инструкция_2 ⚙️", url = "https://yandex.ru/search/?clid=2437996&text=z&l10n=ru&lr=39"))
+            bot.send_message(message.chat.id, 'Нажмите кнопку!', reply_markup = markup)             
 
-@bot.message_handler(content_types = ['text', 'document', 'photo', 'audio', 'video', 'voice']) 
+        if message.text == 'Создать Заявку 🛠':
+            msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте! Меня зовут - {1.first_name}.\n\n<b>{0.first_name}</b> я зарегистрирую Вашу заявку, для этого в начале сообщения введите <u><b>Название заявки</b></u> и подробно опишите, что случилось?".format(message.from_user, bot.get_me()),
+            parse_mode = 'html')        
+            bot.register_next_step_handler(msg, create_request_0)        
 
-def send_text(message): 
-
-    if message.text == 'Контакты и Инструкции📱':
-        bot.send_message(message.chat.id, "Телефон тех поддержки: 8633032064 доб. ххх".format(message.from_user, bot.get_me(),
-    parse_mode='html'))
-        markup=types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("Инструкция_1 ⚙️", url = "https://yandex.ru/search/?clid=2437996&text=z&l10n=ru&lr=39"))
-        markup.add(types.InlineKeyboardButton("Инструкция_2 ⚙️", url = "https://yandex.ru/search/?clid=2437996&text=z&l10n=ru&lr=39"))
-        bot.send_message(message.chat.id, 'Нажмите кнопку!', reply_markup = markup)     
-
-    if message.text == 'Создать Заявку 🛠':
-        msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте! Меня зовут - {1.first_name}.\n\n<b>{0.first_name}</b> я зарегистрирую Вашу заявку, для этого в начале сообщения введите <u><b>Название заявки</b></u> и подробно опишите, что случилось?".format(message.from_user, bot.get_me()),
-        parse_mode = 'html')        
-        bot.register_next_step_handler(msg, create_request_0)
-
-    if message.text == 'Дополнить Заявку 🛠':
-            msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте!\n\n Для обновления заявки введите её номер".format(message.from_user, bot.get_me()),
-            parse_mode = 'html')            
-            bot.register_next_step_handler(msg, create_request_1)
-    
-    if message.text == 'Удалить Заявку ⛔️':
-        msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте!  Для удаления заявки напишите её номер, <b>Обратите внимание, это действие не обратимо!</b>".format(message.from_user, bot.get_me()),
-        parse_mode = 'html')        
-        bot.register_next_step_handler(msg, create_request_3)
-
-    if message.text == 'Мои-ID и Мои заявки ✅':                       
-        bot.send_message(message.chat.id, "Ваш логин: {0.username} и Ваш ID: {0.id}.".format(message.from_user, bot.get_me(),
-    parse_mode='html'))   
-
-    if message.text == 'Найти Заявку 🔍':
-        msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте! Напишите номер заявки".format(message.from_user, bot.get_me()),
-        parse_mode = 'html')        
-        bot.register_next_step_handler(msg, create_request_4)     
+        if message.text == 'Дополнить Заявку 🛠':
+                msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте!\n\n Для обновления заявки введите её номер".format(message.from_user, bot.get_me()),
+                parse_mode = 'html')            
+                bot.register_next_step_handler(msg, create_request_1)
         
+        if message.text == 'Удалить Заявку ⛔️':
+            msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте!  Для удаления заявки напишите её номер, <b>Обратите внимание, это действие не обратимо!</b>".format(message.from_user, bot.get_me()),
+            parse_mode = 'html')        
+            bot.register_next_step_handler(msg, create_request_3)
+
+        if message.text == 'Мои-ID и Мои заявки ✅':                       
+            bot.send_message(message.chat.id, "Ваш логин: {0.username} и Ваш ID: {0.id}.".format(message.from_user, bot.get_me(),
+        parse_mode='html'))   
+
+        if message.text == 'Найти Заявку 🔍':
+            msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте! Напишите номер заявки".format(message.from_user, bot.get_me()),
+            parse_mode = 'html')        
+            bot.register_next_step_handler(msg, create_request_4)     
+            
 
 
-    if message.text == 'Мои-ID и Мои заявки ✅':
-        try: 
-            connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                            password = sqlconnect.PASSWORD, 
-                                            host = sqlconnect.HOST, 
-                                            port = sqlconnect.PORT, 
-                                            database = sqlconnect.DATABASE)
-            id_us = [message.from_user.id]
-            cursor = connection.cursor()                              
-            cursor.execute("SELECT * from CRM_TABLE where USER_ID = %s".format(message.text), (id_us))
-            connection.commit()            
-            record = cursor.fetchall()
-            for row in record:
-                a = str(row[0])
-                b = str(row[9])
-                c = str(row[10])
-                d = str(row[11])
-                e = str(row[12])
-                f = str(row[8])
-                raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + ",\n\n | Статус заявки =" + d +  ",\n | Решение специалиста =" + e + ",\n\n | Описание =" + b + ",\n\n | Дополненое описание =" + c)
-                bot.send_message(message.chat.id, raspis)
-        finally:                        
-            if connection:                           
-                cursor.close()
-                connection.close()
-                print("Соединение с PostgreSQL закрыто")
+        if message.text == 'Мои-ID и Мои заявки ✅':
+            try: 
+                connection = psycopg2.connect(  user = sqlconnect.USER, 
+                                                password = sqlconnect.PASSWORD, 
+                                                host = sqlconnect.HOST, 
+                                                port = sqlconnect.PORT, 
+                                                database = sqlconnect.DATABASE)
+                id_us = [message.from_user.id]
+                cursor = connection.cursor()                              
+                cursor.execute("SELECT * from CRM_TABLE where USER_ID = %s".format(message.text), (id_us))
+                connection.commit()            
+                record = cursor.fetchall()
+                for row in record:
+                    a = str(row[0])
+                    b = str(row[9])
+                    c = str(row[10])
+                    d = str(row[11])
+                    e = str(row[12])
+                    f = str(row[8])
+                    raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + ",\n\n | Статус заявки =" + d +  ",\n | Решение специалиста =" + e + ",\n\n | Описание =" + b + ",\n\n | Дополненое описание =" + c)
+                    bot.send_message(message.chat.id, raspis)
+            finally:                        
+                if connection:                           
+                    cursor.close()
+                    connection.close()
+                    print("Соединение с PostgreSQL закрыто")
+
+    except Exception as e:
+        bot.reply_to(message, 'oooops')
         
 def create_request_1(message):
     global text_1
