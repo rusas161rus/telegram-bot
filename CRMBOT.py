@@ -22,8 +22,9 @@ class User:
 def button(message):      
     markup=types.ReplyKeyboardMarkup(resize_keyboard = True, row_width = 3)
     btm4=types.KeyboardButton('Мои-ID и Мои заявки ✅')
+    btm7=types.KeyboardButton('Мой-ID 🪪')
     btm5=types.KeyboardButton('Контакты и Инструкции📱')        
-    markup.add(btm4, btm5)
+    markup.add(btm4, btm7, btm5)
     btm6=types.KeyboardButton('Найти Заявку 🔍')        
     markup.add(btm6)       
     btm1=types.KeyboardButton('Создать Заявку 🛠')
@@ -50,7 +51,7 @@ def next_step_handler(message):
             bot.send_message(message.chat.id, 'Нажмите кнопку!', reply_markup = markup)             
 
         if message.text == 'Создать Заявку 🛠':
-            msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте! Меня зовут - {1.first_name}.\n\n<b>{0.first_name}</b> я зарегистрирую Вашу заявку, для этого в начале сообщения введите <u><b>Название заявки</b></u> и подробно опишите, что случилось?".format(message.from_user, bot.get_me()),
+            msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте! Меня зовут - {1.first_name}.\n\n<b>{0.first_name}</b> я зарегистрирую Вашу заявку, для этого введите <u><b>Название заявки</b></u>!".format(message.from_user, bot.get_me()),
             parse_mode = 'html')        
             bot.register_next_step_handler(msg, create_request_0)        
 
@@ -64,9 +65,13 @@ def next_step_handler(message):
             parse_mode = 'html')        
             bot.register_next_step_handler(msg, create_request_3)
 
+        if message.text == 'Мой-ID 🪪':                       
+            bot.send_message(message.chat.id, "Ваш логин: {0.username} и Ваш ID: {0.id}.".format(message.from_user, bot.get_me(),
+            parse_mode='html'))        
+        print(message.from_user.last_name)
         if message.text == 'Мои-ID и Мои заявки ✅':                       
             bot.send_message(message.chat.id, "Ваш логин: {0.username} и Ваш ID: {0.id}.".format(message.from_user, bot.get_me(),
-        parse_mode='html'))   
+            parse_mode='html'))   
 
         if message.text == 'Найти Заявку 🔍':
             msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте! Напишите номер заявки".format(message.from_user, bot.get_me()),
@@ -89,12 +94,13 @@ def next_step_handler(message):
                 record = cursor.fetchall()
                 for row in record:
                     a = str(row[0])
-                    b = str(row[9])
-                    c = str(row[10])
-                    d = str(row[11])
-                    e = str(row[12])
+                    #b = str(row[10])
+                    #c = str(row[11])
+                    d = str(row[12])
+                    #e = str(row[13])
                     f = str(row[8])
-                    raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + ",\n\n | Статус заявки =" + d +  ",\n | Решение специалиста =" + e + ",\n\n | Описание =" + b + ",\n\n | Дополненое описание =" + c)
+                    g = str(row[1])
+                    raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + ",\n\n  | Название заявки =" + g + ",\n  | Статус заявки =" + d)
                     bot.send_message(message.chat.id, raspis)
             finally:                        
                 if connection:                           
@@ -104,7 +110,14 @@ def next_step_handler(message):
 
     except Exception as e:
         bot.reply_to(message, 'oooops')
-        
+
+def create_request_0(message):
+    global text_2
+    text_2 = message.text
+    msg=bot.send_message(message.chat.id, "Напишите, что случилось.".format(message.from_user, bot.get_me()),
+    parse_mode = 'html')            
+    bot.register_next_step_handler(msg, create_request_5)        
+
 def create_request_1(message):
     global text_1
     text_1 = [message.text]
@@ -114,17 +127,17 @@ def create_request_1(message):
    
 
 
-def create_request_0(message):    
+def create_request_5(message):    
     try: 
         connection = psycopg2.connect(  user = sqlconnect.USER, 
                                         password = sqlconnect.PASSWORD, 
                                         host = sqlconnect.HOST, 
                                         port = sqlconnect.PORT, 
                                         database = sqlconnect.DATABASE)
-        id_h=[message.chat.id, message.id, message.from_user.id, str(message.from_user.username), str(message.from_user.last_name), str(message.from_user.first_name)]
+        id_h=[text_2, message.chat.id, message.id, message.from_user.id, str(message.from_user.username), str(message.from_user.last_name), str(message.from_user.first_name)]
         cursor = connection.cursor()                              
-        cursor.execute("""INSERT INTO CRM_TABLE (CHAT_ID, MESSAGE_ID, USER_ID, USER_NAME, USER_LAST_NAME, USER_FERST_NAME, TEXT_ZAIVKI, STATUS_ZAIVKI) 
-                                          VALUES (%s, %s, %s, %s, %s, %s, '{}', 'Зарегистрировано')""".format(message.text), (id_h))
+        cursor.execute("""INSERT INTO CRM_TABLE (NAZVANIE_ZAIVKI, CHAT_ID, MESSAGE_ID, USER_ID, USER_NAME, USER_LAST_NAME, USER_FERST_NAME, TEXT_ZAIVKI, STATUS_ZAIVKI) 
+                                          VALUES (%s, %s, %s, %s, %s, %s, %s, '{}', 'Зарегистрировано')""".format(message.text), (id_h))
         cursor.execute("SELECT * from CRM_TABLE".format(message.text))
         connection.commit()
         record = cursor.fetchall()
@@ -198,12 +211,13 @@ def create_request_4(message):
         record = cursor.fetchall()
         for row in record:
             a = str(row[0])
-            b = str(row[9])
-            c = str(row[10])
-            d = str(row[11])
-            e = str(row[12])
+            b = str(row[10])
+            c = str(row[11])
+            d = str(row[12])
+            e = str(row[13])
             f = str(row[8])
-            raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + ",\n\n | Статус заявки =" + d +  ",\n | Решение специалиста =" + e + ",\n\n | Описание =" + b + ",\n\n | Дополненое описание =" + c)
+            g = str(row[1])
+            raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + ",\n\n  | Название заявки =" + g + ",\n\n  | Статус заявки =" + d +  ",\n | Решение специалиста =" + e + ",\n\n | Описание =" + b + ",\n\n | Дополненое описание =" + c)
             bot.send_message(message.chat.id, raspis)  
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
