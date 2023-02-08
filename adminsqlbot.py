@@ -1,12 +1,15 @@
 import psycopg2
 from psycopg2 import Error
 import requests as requests
-from bs4 import BeautifulSoup
 import config
 import sqlconnect
+import requests as requests
+from bs4 import BeautifulSoup
+import pyperclip
 import telebot
 import logging
 from telebot import types
+
 
 logger=telebot.logger
 telebot.logger.setLevel(logging.DEBUG)
@@ -20,33 +23,67 @@ def button(message):
     btm1 = types.KeyboardButton('Показать расписание')
     btm2 = types.KeyboardButton('Изменить расписание')
     btm3 = types.KeyboardButton('Обновить расписание в разработке')
-    btm4 = types.KeyboardButton('Расписание с сайта РКСИ в разработке')           
+    btm4 = types.KeyboardButton('Расписание с сайта РКСИ')           
     markup.add(btm1, btm3, btm2, btm4)
     bot.send_message(message.chat.id, 'Бот запущен!', reply_markup = markup)
 
 @bot.message_handler(content_types = ['text', 'document', 'photo', 'audio', 'video', 'voice']) 
 def send_text(message):
 
-    if message.text == 'Расписание с сайта':
-        while True:
-            try:
-                if __name__ == '__main__':
-                    url = 'https://rksi.ru/mobile_schedule'
-                    data = 'group=%C8%D1-11&stt=%CF%EE%EA%E0%E7%E0%F2%FC%21'
-                    headers = {'Content-Type': 'application/x-www-form-urlencoded',
-                            'Accept': 'text/html; charset=windows-1251'}
-                    r = requests.post(url, data=data, headers=headers)
-                    soup = BeautifulSoup(r.text, "html.parser")
-                    classList = soup.findAll('p')
-                    for cls in classList:
-                        print(cls)
-                
-            except AttributeError:
-                bot.send_message(message.chat.id, 'Попробуйте снова! Нажмите кнопку "Файл"')                
-            else:
-                bot.send_message(message.chat.id, classList)
-            finally:
-                break
+    if message.text == 'Расписание с сайта РКСИ':        
+        if __name__ == '__main__':
+            url = 'https://rksi.ru/mobile_schedule'
+            data = 'group=%C8%D1-11&stt=%CF%EE%EA%E0%E7%E0%F2%FC%21'
+            headers = {'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'text/html; charset=windows-1251'}
+            r = requests.post(url, data=data, headers=headers)
+            soup = BeautifulSoup(r.text, "html.parser")
+            classList = soup.findAll('p')
+            for cls in classList:
+                print(cls)
+                with open("pars.txt", "a") as file:
+                    print(cls, file=file)
+    
+        with open ('pars.txt', 'r') as f:
+            old_data = f.read()
+        new_data = old_data.replace("""<p><a href="/">На сайт</a></p>""", "") 
+        with open ('pars.txt', 'w') as f:
+            f.write(new_data)
+        with open ('pars.txt', 'r') as f:
+            old_data = f.read()
+        new_data = old_data.replace("  — ", ",", 17)   
+        with open ('pars.txt', 'w') as f:
+            f.write(new_data)
+        with open ('pars.txt', 'r') as f:
+            old_data = f.read()
+        new_data = old_data.replace("<br/><b>", ", ", 17) 
+        with open ('pars.txt', 'w') as f:
+            f.write(new_data)
+        with open ('pars.txt', 'r') as f:
+            old_data = f.read()
+        new_data = old_data.replace("</b><br/>", ", ", 17)  
+        with open ('pars.txt', 'w') as f:
+            f.write(new_data)
+        with open ('pars.txt', 'r') as f:
+            old_data = f.read()
+        new_data = old_data.replace("<p>", "") 
+        with open ('pars.txt', 'w') as f:
+            f.write(new_data)
+        with open ('pars.txt', 'r') as f:
+            old_data = f.read()
+        new_data = old_data.replace("</p>", "")   
+        with open ('pars.txt', 'w') as f:
+            f.write(new_data)
+
+        with open("pars.txt") as file:
+            data = file.read()
+        pyperclip.copy(data)
+        with open ('pars.txt', 'w') as f:
+            f.write("")
+        
+
+        bot.send_message(message.chat.id, data)                
+            
 
     if message.text == 'Показать расписание':
         try: 
@@ -67,7 +104,7 @@ def send_text(message):
                 e = str(row[4])                                 
                 f = str(row[5])
                 g = str(row[6])                
-                raspis=(" | ИД=" + a + ", | Дата =" + b + ",\n\n | Время начала =" + c + ", | Время конца =" + d + ",\n\n | Предмет =" + e + ", | Преподователь =" + f + ",\n\n | Кабинет =" + g)
+                raspis=("|ИД=" + a + "|" + b + "|с-" + c + "|по-" + d + "\n\n|" + e + "|" + f + "|каб-" + g)
                 #print("ИД =", row[0], "| Дата =", row[1], "| Время начала =", row[2], "| Время конца =", row[3], "| Предмет =", row[4], "| Преподователь =", row[5], "| Кабинет =", row[6])                      
                 bot.send_message(message.chat.id, raspis)
         finally:                        
