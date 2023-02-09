@@ -51,17 +51,17 @@ def send_text(message):
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("  — ", ",", )   
+        new_data = old_data.replace("  — ", ",")   
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("<br/><b>", ", ", ) 
+        new_data = old_data.replace("<br/><b>", ", ") 
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("</b><br/>", ", ", )  
+        new_data = old_data.replace("</b><br/>", ", ")  
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
