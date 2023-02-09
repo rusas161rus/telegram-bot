@@ -56,10 +56,10 @@ def next_step_handler(message):
             bot.register_next_step_handler(msg, create_request_0)        
 
         if message.text == 'Дополнить Заявку 🛠':
-                msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте!\n\n Для обновления заявки введите её номер".format(message.from_user, bot.get_me()),
-                parse_mode = 'html')            
-                bot.register_next_step_handler(msg, create_request_1)
-        
+            msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте!\n\n Для обновления заявки введите её номер".format(message.from_user, bot.get_me()),
+            parse_mode = 'html')            
+            bot.register_next_step_handler(msg, create_request_1)
+    
         if message.text == 'Удалить Заявку ⛔️':
             msg=bot.send_message(message.chat.id, "{0.first_name} {0.last_name}, здравствуйте!  Для удаления заявки напишите её номер, <b>Обратите внимание, это действие не обратимо!</b>".format(message.from_user, bot.get_me()),
             parse_mode = 'html')        
@@ -100,8 +100,11 @@ def next_step_handler(message):
                     #e = str(row[13])
                     f = str(row[8])
                     g = str(row[1])
-                    raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + ",\n\n  | Название заявки =" + g + ",\n  | Статус заявки =" + d)
+                    raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + "\n\n  | Название заявки =" + g + "\n  | Статус заявки =" + d)
                     bot.send_message(message.chat.id, raspis)
+            except (Exception, Error) as error:
+                print("Ошибка при работе с PostgreSQL", error)
+                bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))
             finally:                        
                 if connection:                           
                     cursor.close()
@@ -161,8 +164,7 @@ def create_request_2(message):
                                         password = sqlconnect.PASSWORD, 
                                         host = sqlconnect.HOST, 
                                         port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)
-        
+                                        database = sqlconnect.DATABASE)        
         cursor = connection.cursor()              
         cursor.execute("""Update CRM_TABLE set TEXT_DOP_ZAIVKI = ('{}') WHERE ID = %s""".format(message.text), (text_1))
         connection.commit()
@@ -217,7 +219,7 @@ def create_request_4(message):
             e = str(row[13])
             f = str(row[8])
             g = str(row[1])
-            raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + ",\n\n  | Название заявки =" + g + ",\n\n  | Статус заявки =" + d +  ",\n | Решение специалиста =" + e + ",\n\n | Описание =" + b + ",\n\n | Дополненое описание =" + c)
+            raspis=(" | №=" + a + " | Дата и время обращения \n" + f  + ",\n\n  | Название заявки =" + g + "\n\n  | Статус заявки =" + d +  "\n | Решение специалиста =" + e + "\n\n | Описание =" + b + "\n\n | Дополненое описание =" + c)
             bot.send_message(message.chat.id, raspis)  
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
