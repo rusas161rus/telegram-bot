@@ -10,7 +10,6 @@ import telebot
 import logging
 from telebot import types
 
-
 logger=telebot.logger
 telebot.logger.setLevel(logging.DEBUG)
 logging.basicConfig(filename = "log.log", format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -20,11 +19,12 @@ bot=telebot.TeleBot(config.TOKEN)
 @bot.message_handler(commands = ['start'])
 def button(message):        
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
-    btm1 = types.KeyboardButton('Показать расписание')
+    btm1 = types.KeyboardButton('Расписание')
+    btm5 = types.KeyboardButton('Поиск по времени')
     btm2 = types.KeyboardButton('Изменить расписание')
     btm3 = types.KeyboardButton('Обновить расписание в базе')
     btm4 = types.KeyboardButton('Расписание с сайта РКСИ')           
-    markup.add(btm1, btm3, btm2, btm4)
+    markup.add(btm1, btm3, btm2, btm4, btm5)
     bot.send_message(message.chat.id, 'Бот запущен!', reply_markup = markup)
 
 @bot.message_handler(content_types = ['text', 'document', 'photo', 'audio', 'video', 'voice']) 
@@ -57,9 +57,7 @@ def send_text(message):
                 print("Соединение с PostgreSQL закрыто")
 
         bot.send_message(message.chat.id, "Расписание в базе успешно обновлено".format(message.from_user, bot.get_me()),
-        parse_mode = 'html')       
-            
-
+        parse_mode = 'html') 
 
     if message.text == 'Расписание с сайта РКСИ':        
         with open ('pars.txt', 'w') as f:
@@ -77,8 +75,6 @@ def send_text(message):
                 print(cls)
                 with open("pars.txt", "a") as file:
                     print(cls, file=file)
-
-        
     
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
@@ -120,10 +116,9 @@ def send_text(message):
             data = file.read()
         pyperclip.copy(data)          
 
-        bot.send_message(message.chat.id, data)                
-            
+        bot.send_message(message.chat.id, data)  
 
-    if message.text == 'Показать расписание':
+    if message.text == 'Расписание':
         try: 
             connection = psycopg2.connect(  user = sqlconnect.USER, 
                                             password = sqlconnect.PASSWORD, 
@@ -145,11 +140,20 @@ def send_text(message):
                 raspis=("|ИД=" + a + "|" + b + "|с-" + c + "|по-" + d + "\n\n|" + e + "|" + f + "|каб-" + g)
                 #print("ИД =", row[0], "| Дата =", row[1], "| Время начала =", row[2], "| Время конца =", row[3], "| Предмет =", row[4], "| Преподователь =", row[5], "| Кабинет =", row[6])                      
                 bot.send_message(message.chat.id, raspis)
+        except (Exception, Error) as error:
+            print("Ошибка при работе с PostgreSQL", error)
+            bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))
         finally:                        
             if connection:                           
                 cursor.close()
                 connection.close()
-                print("Соединение с PostgreSQL закрыто")  
+                print("Соединение с PostgreSQL закрыто")
+
+    if message.text == 'Поиск по времени':
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        markup.add(types.InlineKeyboardButton("По Времени Начала", callback_data = 'nachalo'))
+        markup.add(types.InlineKeyboardButton("По Времени Конца", callback_data = 'conec'))
+        bot.send_message(message.chat.id, "Выберете кнопку", reply_markup = markup)  
                 
     if message.text == 'Изменить расписание':
         markup = types.InlineKeyboardMarkup(row_width=2)
@@ -213,8 +217,37 @@ def answer(call):
         bbtm_in = types.KeyboardButton('Создать целую запись')
         markup_reply.add(bbtm_in)
         msg = bot.send_message(call.message.chat.id, "Введите дату в формате гггг-мм-дд")
-        bot.register_next_step_handler(msg, create_insrt_request_message_0)    
+        bot.register_next_step_handler(msg, create_insrt_request_message_0)
+    if call.data == 'nachalo':
+        markup_reply=types.ReplyKeyboardMarkup(resize_keyboard = True)
+        bbtm_in = types.KeyboardButton('По Времени Начала')
+        markup_reply.add(bbtm_in)
+        msg = bot.send_message(call.message.chat.id, "Введите время начала с в формате хх:хх")
+        bot.register_next_step_handler(msg, create_select_request_message_0)
+    if call.data == 'conec':
+        markup_reply=types.ReplyKeyboardMarkup(resize_keyboard = True)
+        bbtm_in = types.KeyboardButton('По Времени Конца')
+        markup_reply.add(bbtm_in)
+        msg = bot.send_message(call.message.chat.id, "Введите время конца с в формате хх:хх")
+        bot.register_next_step_handler(msg, create_select_request_message_1) 
 
+
+
+# Функция поиска по времени
+def create_select_request_message_0(message):
+    global text_select_ts_0
+    text_select_ts_0 = message.text
+    msg=bot.send_message(message.chat.id, "Введите время начала по в формате хх:хх".format(message.from_user, bot.get_me()),
+    parse_mode = 'html')            
+    bot.register_next_step_handler(msg, select_request_SQL_s_0)
+def create_select_request_message_1(message):
+    global text_select_tp_0
+    text_select_tp_0 = message.text
+    msg=bot.send_message(message.chat.id, "Введите время конца по в формате хх:хх".format(message.from_user, bot.get_me()),
+    parse_mode = 'html')            
+    bot.register_next_step_handler(msg, select_request_SQL_s_1)
+
+# Добавление по 1 параметру
 def create_request_message_0(message):
     global text_0
     text_0 = message.text
@@ -252,6 +285,7 @@ def create_request_message_5(message):
     parse_mode = 'html')            
     bot.register_next_step_handler(msg, create_request_SQL_s5)
 
+# Функция пошагового добавления записи
 def create_insrt_request_message_0(message):
     global text_insert_0
     text_insert_0 = message.text
@@ -289,9 +323,10 @@ def create_request_SQL_s0(message):
                                         password = sqlconnect.PASSWORD, 
                                         host = sqlconnect.HOST, 
                                         port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)        
+                                        database = sqlconnect.DATABASE) 
+        text_only_one_0 = [text_0]       
         cursor = connection.cursor()                              
-        cursor.execute("""Update Raspisanie set TIME_S = '{}' where id = %s""".format(message.text), (text_0))
+        cursor.execute("""Update Raspisanie set TIME_S = '{}' where id = %s""".format(message.text), (text_only_one_0))
         connection.commit()
         print(cursor.rowcount, "Запись успешно обновлена")        
         bot.send_message(message.chat.id, "Запись успешно обновлена".format(name = message.text))         
@@ -310,8 +345,9 @@ def create_request_SQL_s1(message):
                                         host = sqlconnect.HOST, 
                                         port = sqlconnect.PORT, 
                                         database = sqlconnect.DATABASE)
+        text_only_one_1 = [text_1]       
         cursor = connection.cursor()              
-        cursor.execute("""Update Raspisanie set TIME_P = '{}' where id = %s""".format(message.text), (text_1))
+        cursor.execute("""Update Raspisanie set TIME_P = '{}' where id = %s""".format(message.text), (text_only_one_1))
         connection.commit()
         print(cursor.rowcount, "Запись успешно обновлена")        
         bot.send_message(message.chat.id, "Запись успешно обновлена".format(name = message.text))   
@@ -330,8 +366,9 @@ def create_request_SQL_s2(message):
                                         host = sqlconnect.HOST, 
                                         port = sqlconnect.PORT, 
                                         database = sqlconnect.DATABASE)
+        text_only_one_2 = [text_2]
         cursor = connection.cursor()                              
-        cursor.execute("""Update Raspisanie set DATE = '{}' where id = %s""".format(message.text), (text_2))
+        cursor.execute("""Update Raspisanie set DATE = '{}' where id = %s""".format(message.text), (text_only_one_2))
         connection.commit()
         print(cursor.rowcount, "Запись успешно обновлена")        
         bot.send_message(message.chat.id, "Запись успешно обновлена".format(name = message.text))         
@@ -350,8 +387,9 @@ def create_request_SQL_s3(message):
                                         host = sqlconnect.HOST, 
                                         port = sqlconnect.PORT, 
                                         database = sqlconnect.DATABASE)
+        text_only_one_3 = [text_3]
         cursor = connection.cursor()                              
-        cursor.execute("""Update Raspisanie set PREDMET = '{}' where id = %s""".format(message.text), (text_3))
+        cursor.execute("""Update Raspisanie set PREDMET = '{}' where id = %s""".format(message.text), (text_only_one_3))
         connection.commit()
         print(cursor.rowcount, "Запись успешно обновлена")        
         bot.send_message(message.chat.id, "Запись успешно обновлена".format(name = message.text))         
@@ -370,8 +408,9 @@ def create_request_SQL_s4(message):
                                         host = sqlconnect.HOST, 
                                         port = sqlconnect.PORT, 
                                         database = sqlconnect.DATABASE)
+        text_only_one_4 = [text_4]
         cursor = connection.cursor()                              
-        cursor.execute("""Update Raspisanie set PREPODOVATEL = '{}' where id = %s""".format(message.text), (text_4))
+        cursor.execute("""Update Raspisanie set PREPODOVATEL = '{}' where id = %s""".format(message.text), (text_only_one_4))
         connection.commit()
         print(cursor.rowcount, "Запись успешно обновлена")        
         bot.send_message(message.chat.id, "Запись успешно обновлена".format(name = message.text))         
@@ -390,8 +429,9 @@ def create_request_SQL_s5(message):
                                         host = sqlconnect.HOST, 
                                         port = sqlconnect.PORT, 
                                         database = sqlconnect.DATABASE)
+        text_only_one_5 = [text_5]
         cursor = connection.cursor()                              
-        cursor.execute("""Update Raspisanie set KABINET = '{}' where id = %s""".format(message.text), (text_5))
+        cursor.execute("""Update Raspisanie set KABINET = '{}' where id = %s""".format(message.text), (text_only_one_5))
         connection.commit()
         print(cursor.rowcount, "Запись успешно обновлена")        
         bot.send_message(message.chat.id, "Запись успешно обновлена".format(name = message.text))         
@@ -445,8 +485,70 @@ def create_request_SQL_s6(message):
             cursor.close()
             connection.close()
             print("Соединение с PostgreSQL закрыто")
-
-
+def select_request_SQL_s_0(message):
+    try: 
+        connection = psycopg2.connect(  user = sqlconnect.USER, 
+                                        password = sqlconnect.PASSWORD, 
+                                        host = sqlconnect.HOST, 
+                                        port = sqlconnect.PORT, 
+                                        database = sqlconnect.DATABASE)
+        text_select_ts_1 = message.text
+        time_s = [text_select_ts_0, text_select_ts_1]
+        cursor = connection.cursor()                              
+        cursor.execute("SELECT *   from raspisanie r  WHERE (time_s , time_s) OVERLAPS (%s::time , %s::time);", (time_s))
+        connection.commit()            
+        record = cursor.fetchall()
+        for row in record:
+            a = str(row[0])
+            b = str(row[1])
+            c = str(row[2])
+            d = str(row[3])
+            e = str(row[4])                                 
+            f = str(row[5])
+            g = str(row[6])                
+            raspis=("|ИД=" + a + "|" + b + "|с-" + c + "|по-" + d + "\n\n|" + e + "|" + f + "|каб-" + g)
+            #print("ИД =", row[0], "| Дата =", row[1], "| Время начала =", row[2], "| Время конца =", row[3], "| Предмет =", row[4], "| Преподователь =", row[5], "| Кабинет =", row[6])                      
+            bot.send_message(message.chat.id, raspis)
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+        bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))
+    finally:                        
+        if connection:                           
+            cursor.close()
+            connection.close()
+            print("Соединение с PostgreSQL закрыто")
+def select_request_SQL_s_1(message):
+    try: 
+        connection = psycopg2.connect(  user = sqlconnect.USER, 
+                                        password = sqlconnect.PASSWORD, 
+                                        host = sqlconnect.HOST, 
+                                        port = sqlconnect.PORT, 
+                                        database = sqlconnect.DATABASE)
+        text_select_tp_1 = message.text
+        time_p = [text_select_tp_0, text_select_tp_1]
+        cursor = connection.cursor()                              
+        cursor.execute("SELECT *   from raspisanie r  WHERE (time_p , time_p) OVERLAPS (%s::time , %s::time);", (time_p))
+        connection.commit()            
+        record = cursor.fetchall()
+        for row in record:
+            a = str(row[0])
+            b = str(row[1])
+            c = str(row[2])
+            d = str(row[3])
+            e = str(row[4])                                 
+            f = str(row[5])
+            g = str(row[6])                
+            raspis=("|ИД=" + a + "|" + b + "|с-" + c + "|по-" + d + "\n\n|" + e + "|" + f + "|каб-" + g)
+            #print("ИД =", row[0], "| Дата =", row[1], "| Время начала =", row[2], "| Время конца =", row[3], "| Предмет =", row[4], "| Преподователь =", row[5], "| Кабинет =", row[6])                      
+            bot.send_message(message.chat.id, raspis)
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+        bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))
+    finally:                        
+        if connection:                           
+            cursor.close()
+            connection.close()
+            print("Соединение с PostgreSQL закрыто")
 
 bot.polling(none_stop = True, timeout = 30)
 
