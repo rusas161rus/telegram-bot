@@ -22,7 +22,7 @@ def button(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
     btm1 = types.KeyboardButton('Показать расписание')
     btm2 = types.KeyboardButton('Изменить расписание')
-    btm3 = types.KeyboardButton('Обновить расписание в разработке')
+    btm3 = types.KeyboardButton('Обновить расписание в базе')
     btm4 = types.KeyboardButton('Расписание с сайта РКСИ')           
     markup.add(btm1, btm3, btm2, btm4)
     bot.send_message(message.chat.id, 'Бот запущен!', reply_markup = markup)
@@ -30,7 +30,41 @@ def button(message):
 @bot.message_handler(content_types = ['text', 'document', 'photo', 'audio', 'video', 'voice']) 
 def send_text(message):
 
+    if message.text == 'Обновить расписание в базе':
+        try: 
+            connection = psycopg2.connect(  user = sqlconnect.USER, 
+                                            password = sqlconnect.PASSWORD, 
+                                            host = sqlconnect.HOST, 
+                                            port = sqlconnect.PORT, 
+                                            database = sqlconnect.DATABASE)        
+            file1 = open('pars.txt')
+            cursor = connection.cursor()
+            cursor.execute (''' DELETE FROM Raspisanie ''')    
+            cursor = connection.cursor()
+            file1 = open('pars.txt', 'r')   
+            for line in file1:
+                cursor.execute("""INSERT INTO Raspisanie (TIME_S, TIME_P, PREDMET, PREPODOVATEL, KABINET) VALUES {}""".format(line.strip()))
+                print(line)
+                #print("Line{}: {}".format(count, line.strip()))
+            connection.commit()
+            print(cursor.rowcount, "1 Запись успешно Вставлена")
+        except (Exception, Error) as error:
+            print("Ошибка при работе с PostgreSQL", error)   
+        finally:
+            if connection:
+                cursor.close()
+                connection.close()
+                print("Соединение с PostgreSQL закрыто")
+
+        bot.send_message(message.chat.id, "Расписание в базе успешно обновлено".format(message.from_user, bot.get_me()),
+        parse_mode = 'html')       
+            
+
+
     if message.text == 'Расписание с сайта РКСИ':        
+        with open ('pars.txt', 'w') as f:
+            f.write('')      
+            
         if __name__ == '__main__':
             url = 'https://rksi.ru/mobile_schedule'
             data = 'group=%C8%D1-11&stt=%CF%EE%EA%E0%E7%E0%F2%FC%21'
@@ -43,44 +77,48 @@ def send_text(message):
                 print(cls)
                 with open("pars.txt", "a") as file:
                     print(cls, file=file)
+
+        
     
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("""<p><a href="/">На сайт</a></p>""", "") 
+        new_data = old_data.replace(", ", "', '")   
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("  — ", ",")   
+        new_data = old_data.replace("  —  ", "', '")   
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("<br/><b>", ", ") 
+        new_data = old_data.replace("<br/><b>", "', '") 
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("</b><br/>", ", ")  
+        new_data = old_data.replace("</b><br/>", "', '")  
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("<p>", "") 
+        new_data = old_data.replace("<p>", "('") 
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("</p>", "")   
+        new_data = old_data.replace("</p>", "')")   
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
-
+        with open ('pars.txt', 'r') as f:
+            old_data = f.read()
+        new_data = old_data.replace("""<a href="/">На сайт</a>""", "00:00', '00:00', '00:00', '00:00', '00:00") 
+        with open ('pars.txt', 'w') as f:
+            f.write(new_data)        
+        
         with open("pars.txt") as file:
             data = file.read()
-        pyperclip.copy(data)
-        with open ('pars.txt', 'w') as f:
-            f.write("")
-        
+        pyperclip.copy(data)          
 
         bot.send_message(message.chat.id, data)                
             
