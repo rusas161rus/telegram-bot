@@ -51,17 +51,17 @@ def send_text(message):
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("  — ", ",", 17)   
+        new_data = old_data.replace("  — ", ",", )   
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("<br/><b>", ", ", 17) 
+        new_data = old_data.replace("<br/><b>", ", ", ) 
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
             old_data = f.read()
-        new_data = old_data.replace("</b><br/>", ", ", 17)  
+        new_data = old_data.replace("</b><br/>", ", ", )  
         with open ('pars.txt', 'w') as f:
             f.write(new_data)
         with open ('pars.txt', 'r') as f:
@@ -243,7 +243,7 @@ def create_insrt_request_message_s3(message):
     text_insert_4 = message.text
     msg=bot.send_message(message.chat.id, "Введите № кабинета".format(message.from_user, bot.get_me()),
     parse_mode = 'html')            
-    bot.register_next_step_handler(msg, create_request_SQL_s5)
+    bot.register_next_step_handler(msg, create_request_SQL_s6)
 
 def create_request_SQL_s0(message):    
     try: 
@@ -385,7 +385,7 @@ def create_request_delete_1(message):
             cursor.close()
             connection.close()
             print("Соединение с PostgreSQL закрыто")
-def create_request_SQL_s5(message):    
+def create_request_SQL_s6(message):    
     try: 
         connection = psycopg2.connect(  user = sqlconnect.USER, 
                                         password = sqlconnect.PASSWORD, 
