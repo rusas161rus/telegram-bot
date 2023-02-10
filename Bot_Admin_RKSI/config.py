@@ -1,5 +1,5 @@
 #Bot
-TOKEN='5771211381:AAE5n5qtUS0SRMBpvboM_vtwdUIbQxLu5y4'
+TOKEN='Your token'
 
 #sqlconnect
 USER="your data"                                
