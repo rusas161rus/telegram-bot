@@ -1,5 +1,0 @@
-USER="your data"                                
-PASSWORD="your data"
-HOST="your data"
-PORT="your data"
-DATABASE="your data"
