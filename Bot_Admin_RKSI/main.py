@@ -18,7 +18,7 @@ telebot.logger.setLevel(logging.DEBUG)
 logging.basicConfig(filename = "log.log", format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 bot=telebot.TeleBot(config.TOKEN)
-my_chat_id = -680891031
+my_chat_id = config.my_chat_id
 
 def schedule_checker():
     while True:
