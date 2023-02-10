@@ -9,7 +9,7 @@ PORT="your data"
 DATABASE="your data"
 
 # notification
-my_chat_id = -680891031
+my_chat_id = 0000000
 
 # Admin_list
 class Admin_user_id():
