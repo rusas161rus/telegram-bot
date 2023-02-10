@@ -2,34 +2,46 @@ import psycopg2
 from psycopg2 import Error
 import requests as requests
 import config
-import sqlconnect
 from bs4 import BeautifulSoup
 import pyperclip
 import telebot
 import logging
 from telebot import types
+import schedule
+from threading import Thread
+from time import sleep
 
-# Админ лист
+Admin_user_0 = config.Admin_user_0
+Admin_user_1 = config.Admin_user_1
+Admin_user_2 = config.Admin_user_2
+Admin_user_3 = config.Admin_user_3
+Admin_user_4 = config.Admin_user_4
 
-class Admin_user_id():
-    def __init__(self, id_user, name):
-        self.id_user = id_user
-        self.name_user = name        
-   
-Admin_user_0 = Admin_user_id (648841533, "Вова")
-Admin_user_1 = Admin_user_id (658118472, "Руслан")
-Admin_user_2 = Admin_user_id (8350493, "Анатолий")
-
-Admin_list = {Admin_user_0.id_user, Admin_user_1.id_user, Admin_user_2.id_user}
-
-#[648841533]
-#[658118472] 
+Admin_list = {Admin_user_0.id_user, Admin_user_1.id_user, Admin_user_2.id_user, Admin_user_3.id_user, Admin_user_4.id_user}
 
 logger=telebot.logger
 telebot.logger.setLevel(logging.DEBUG)
 logging.basicConfig(filename = "log.log", format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 bot=telebot.TeleBot(config.TOKEN)
+my_chat_id = -680891031
+
+def schedule_checker():
+    while True:
+        schedule.run_pending()
+        sleep(1)
+
+def function_to_run():
+    return bot.send_message(my_chat_id, "Звонок через 10 минут")
+if __name__ == "__main__":
+    schedule.every().day.at("07:50:00").do(function_to_run)
+    schedule.every().day.at("09:30:00").do(function_to_run)
+    schedule.every().day.at("11:20:00").do(function_to_run)
+    schedule.every().day.at("13:00:00").do(function_to_run)
+    schedule.every().day.at("14:50:00").do(function_to_run)
+    schedule.every().day.at("16:30:00").do(function_to_run) 
+    schedule.every().day.at("18:10:00").do(function_to_run)    
+    Thread(target=schedule_checker).start() 
 
 @bot.message_handler(commands = ['start'])
 def button(message):        
@@ -55,11 +67,11 @@ def send_text(message):
                 print("Обновить расписание в базе") 
             if id_message_user in Admin_list:
                 try:
-                    connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                                    password = sqlconnect.PASSWORD, 
-                                                    host = sqlconnect.HOST, 
-                                                    port = sqlconnect.PORT, 
-                                                    database = sqlconnect.DATABASE)        
+                    connection = psycopg2.connect(  user = config.USER, 
+                                                    password = config.PASSWORD, 
+                                                    host = config.HOST, 
+                                                    port = config.PORT, 
+                                                    database = config.DATABASE)        
                     file1 = open('pars.txt')
                     cursor = connection.cursor()
                     cursor.execute (''' DELETE FROM Raspisanie ''')    
@@ -146,11 +158,11 @@ def send_text(message):
 
     if message.text == 'Расписание':
         try: 
-            connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                            password = sqlconnect.PASSWORD, 
-                                            host = sqlconnect.HOST, 
-                                            port = sqlconnect.PORT, 
-                                            database = sqlconnect.DATABASE)
+            connection = psycopg2.connect(  user = config.USER, 
+                                            password = config.PASSWORD, 
+                                            host = config.HOST, 
+                                            port = config.PORT, 
+                                            database = config.DATABASE)
             cursor = connection.cursor()                              
             cursor.execute("SELECT * from Raspisanie".format(message.text))
             connection.commit()            
@@ -327,11 +339,11 @@ def create_insrt_request_message_s3(message):
 
 def create_request_SQL_s0(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE) 
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE) 
         text_only_one_0 = [text_0]       
         cursor = connection.cursor()                              
         cursor.execute("""Update Raspisanie set TIME_S = '{}' where id = %s""".format(message.text), (text_only_one_0))
@@ -348,11 +360,11 @@ def create_request_SQL_s0(message):
             print("Соединение с PostgreSQL закрыто")
 def create_request_SQL_s1(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)
         text_only_one_1 = [text_1]       
         cursor = connection.cursor()              
         cursor.execute("""Update Raspisanie set TIME_P = '{}' where id = %s""".format(message.text), (text_only_one_1))
@@ -369,11 +381,11 @@ def create_request_SQL_s1(message):
             print("Соединение с PostgreSQL закрыто")
 def create_request_SQL_s2(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)
         text_only_one_2 = [text_2]
         cursor = connection.cursor()                              
         cursor.execute("""Update Raspisanie set DATE = '{}' where id = %s""".format(message.text), (text_only_one_2))
@@ -390,11 +402,11 @@ def create_request_SQL_s2(message):
             print("Соединение с PostgreSQL закрыто")
 def create_request_SQL_s3(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)
         text_only_one_3 = [text_3]
         cursor = connection.cursor()                              
         cursor.execute("""Update Raspisanie set PREDMET = '{}' where id = %s""".format(message.text), (text_only_one_3))
@@ -411,11 +423,11 @@ def create_request_SQL_s3(message):
             print("Соединение с PostgreSQL закрыто")
 def create_request_SQL_s4(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)
         text_only_one_4 = [text_4]
         cursor = connection.cursor()                              
         cursor.execute("""Update Raspisanie set PREPODOVATEL = '{}' where id = %s""".format(message.text), (text_only_one_4))
@@ -432,11 +444,11 @@ def create_request_SQL_s4(message):
             print("Соединение с PostgreSQL закрыто")
 def create_request_SQL_s5(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)
         text_only_one_5 = [text_5]
         cursor = connection.cursor()                              
         cursor.execute("""Update Raspisanie set KABINET = '{}' where id = %s""".format(message.text), (text_only_one_5))
@@ -453,11 +465,11 @@ def create_request_SQL_s5(message):
             print("Соединение с PostgreSQL закрыто")  
 def create_request_delete_1(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)            
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)            
         cursor = connection.cursor()                              
         cursor.execute("""Delete from Raspisanie where id = ('{}')""".format(message.text))
         connection.commit()
@@ -473,11 +485,11 @@ def create_request_delete_1(message):
             print("Соединение с PostgreSQL закрыто")
 def create_request_SQL_s6(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)        
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)        
         text_insert_5 = message.text
         text = [text_insert_0, text_insert_1, text_insert_2, text_insert_3, text_insert_4, text_insert_5]           
         cursor = connection.cursor()                              
@@ -495,11 +507,11 @@ def create_request_SQL_s6(message):
             print("Соединение с PostgreSQL закрыто")
 def select_request_SQL_s_0(message):
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)
         text_select_ts_1 = message.text
         time_s = [text_select_ts_0, text_select_ts_1]
         cursor = connection.cursor()                              
@@ -529,11 +541,11 @@ def select_request_SQL_s_0(message):
             print("Соединение с PostgreSQL закрыто")
 def select_request_SQL_s_1(message):
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)
         text_select_tp_1 = message.text
         time_p = [text_select_tp_0, text_select_tp_1]
         cursor = connection.cursor()                              
