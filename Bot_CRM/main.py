@@ -1,5 +1,4 @@
 import config
-import sqlconnect
 import psycopg2
 from psycopg2 import Error
 import telebot
@@ -68,7 +67,7 @@ def next_step_handler(message):
         if message.text == 'Мой-ID 🪪':                       
             bot.send_message(message.chat.id, "Ваш логин: {0.username} и Ваш ID: {0.id}.".format(message.from_user, bot.get_me(),
             parse_mode='html'))        
-        print(message.from_user.last_name)
+            print(message.from_user.last_name)
         if message.text == 'Мои-ID и Мои заявки ✅':                       
             bot.send_message(message.chat.id, "Ваш логин: {0.username} и Ваш ID: {0.id}.".format(message.from_user, bot.get_me(),
             parse_mode='html'))   
@@ -82,11 +81,11 @@ def next_step_handler(message):
 
         if message.text == 'Мои-ID и Мои заявки ✅':
             try: 
-                connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                                password = sqlconnect.PASSWORD, 
-                                                host = sqlconnect.HOST, 
-                                                port = sqlconnect.PORT, 
-                                                database = sqlconnect.DATABASE)
+                connection = psycopg2.connect(  user = config.USER, 
+                                                password = config.PASSWORD, 
+                                                host = config.HOST, 
+                                                port = config.PORT, 
+                                                database = config.DATABASE)
                 id_us = [message.from_user.id]
                 cursor = connection.cursor()                              
                 cursor.execute("SELECT * from CRM_TABLE where USER_ID = %s".format(message.text), (id_us))
@@ -132,11 +131,11 @@ def create_request_1(message):
 
 def create_request_5(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)
         id_h=[text_2, message.chat.id, message.id, message.from_user.id, str(message.from_user.username), str(message.from_user.last_name), str(message.from_user.first_name)]
         cursor = connection.cursor()                              
         cursor.execute("""INSERT INTO CRM_TABLE (NAZVANIE_ZAIVKI, CHAT_ID, MESSAGE_ID, USER_ID, USER_NAME, USER_LAST_NAME, USER_FERST_NAME, TEXT_ZAIVKI, STATUS_ZAIVKI) 
@@ -160,11 +159,11 @@ def create_request_5(message):
 
 def create_request_2(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)        
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)        
         cursor = connection.cursor()              
         cursor.execute("""Update CRM_TABLE set TEXT_DOP_ZAIVKI = ('{}') WHERE ID = %s""".format(message.text), (text_1))
         connection.commit()
@@ -181,11 +180,11 @@ def create_request_2(message):
 
 def create_request_3(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)            
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)            
         cursor = connection.cursor()                              
         cursor.execute("""Delete from CRM_TABLE where id = ('{}')""".format(message.text))
         connection.commit()
@@ -202,11 +201,11 @@ def create_request_3(message):
 
 def create_request_4(message):    
     try: 
-        connection = psycopg2.connect(  user = sqlconnect.USER, 
-                                        password = sqlconnect.PASSWORD, 
-                                        host = sqlconnect.HOST, 
-                                        port = sqlconnect.PORT, 
-                                        database = sqlconnect.DATABASE)            
+        connection = psycopg2.connect(  user = config.USER, 
+                                        password = config.PASSWORD, 
+                                        host = config.HOST, 
+                                        port = config.PORT, 
+                                        database = config.DATABASE)            
         cursor = connection.cursor()                              
         cursor.execute("SELECT * from CRM_TABLE where ID = ('{}')".format(message.text))
         connection.commit()
