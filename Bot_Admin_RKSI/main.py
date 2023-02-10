@@ -11,13 +11,7 @@ import schedule
 from threading import Thread
 from time import sleep
 
-Admin_user_0 = config.Admin_user_0
-Admin_user_1 = config.Admin_user_1
-Admin_user_2 = config.Admin_user_2
-Admin_user_3 = config.Admin_user_3
-Admin_user_4 = config.Admin_user_4
-
-Admin_list = {Admin_user_0.id_user, Admin_user_1.id_user, Admin_user_2.id_user, Admin_user_3.id_user, Admin_user_4.id_user}
+Admin_list = config.Admin_list
 
 logger=telebot.logger
 telebot.logger.setLevel(logging.DEBUG)
