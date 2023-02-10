@@ -40,6 +40,8 @@ if __name__ == "__main__":
 @bot.message_handler(commands = ['start'])
 def button(message):        
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+    btm6 = types.KeyboardButton('Сайт РКСИ и Ссылка на Облако с заданиями')
+    markup.add(btm6)
     btm1 = types.KeyboardButton('Расписание')
     btm4 = types.KeyboardButton('Расписание с сайта РКСИ')
     btm5 = types.KeyboardButton('Поиск по времени')    
@@ -50,7 +52,14 @@ def button(message):
     bot.send_message(message.chat.id, 'Бот запущен!', reply_markup = markup)
 
 @bot.message_handler(content_types = ['text', 'document', 'photo', 'audio', 'video', 'voice']) 
-def send_text(message):    
+def send_text(message):
+
+    if message.text=='Сайт РКСИ и Ссылка на Облако с заданиями':
+        markup=types.InlineKeyboardMarkup(row_width=2)
+        btm_ss_0 = types.InlineKeyboardButton("Облако с Заданиями", url="https://cloud.mail.ru/public/Tb2G/Fuc5s2Sks")
+        btm_ss_1 = types.InlineKeyboardButton("Сайт РКСИ", url="https://www.rksi.ru/schedule")
+        markup.add(btm_ss_0, btm_ss_1)
+        bot.send_message(message.chat.id, 'Сайт РКСИ и Ссылка на Облако с заданиями!', reply_markup=markup)     
 
     if message.text == 'Обновить расписание в базе':
         while True:
