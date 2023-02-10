@@ -8,6 +8,9 @@ HOST="your data"
 PORT="your data"
 DATABASE="your data"
 
+# notification
+my_chat_id = -680891031
+
 # Admin_list
 class Admin_user_id():
     def __init__(self, id_user, name):
