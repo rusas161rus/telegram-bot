@@ -9,6 +9,12 @@ logger = telebot.logger
 telebot.logger.setLevel(logging.DEBUG)
 logging.basicConfig(filename = "log.log", format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+connection = psycopg2.connect(  user = config.USER, 
+                                password = config.PASSWORD, 
+                                host = config.HOST, 
+                                port = config.PORT, 
+                                database = config.DATABASE)
+
 bot=telebot.TeleBot(config.TOKEN)
 
 user_dict = {}
@@ -81,11 +87,6 @@ def next_step_handler(message):
 
         if message.text == 'Мои-ID и Мои заявки ✅':
             try: 
-                connection = psycopg2.connect(  user = config.USER, 
-                                                password = config.PASSWORD, 
-                                                host = config.HOST, 
-                                                port = config.PORT, 
-                                                database = config.DATABASE)
                 id_us = [message.from_user.id]
                 cursor = connection.cursor()                              
                 cursor.execute("SELECT * from CRM_TABLE where USER_ID = %s".format(message.text), (id_us))
@@ -104,11 +105,7 @@ def next_step_handler(message):
             except (Exception, Error) as error:
                 print("Ошибка при работе с PostgreSQL", error)
                 bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))
-            finally:                        
-                if connection:                           
-                    cursor.close()
-                    connection.close()
-                    print("Соединение с PostgreSQL закрыто")
+            
 
     except Exception as e:
         bot.reply_to(message, 'oooops')
@@ -130,12 +127,7 @@ def create_request_1(message):
 
 
 def create_request_5(message):    
-    try: 
-        connection = psycopg2.connect(  user = config.USER, 
-                                        password = config.PASSWORD, 
-                                        host = config.HOST, 
-                                        port = config.PORT, 
-                                        database = config.DATABASE)
+    try:         
         id_h=[text_2, message.chat.id, message.id, message.from_user.id, str(message.from_user.username), str(message.from_user.last_name), str(message.from_user.first_name)]
         cursor = connection.cursor()                              
         cursor.execute("""INSERT INTO CRM_TABLE (NAZVANIE_ZAIVKI, CHAT_ID, MESSAGE_ID, USER_ID, USER_NAME, USER_LAST_NAME, USER_FERST_NAME, TEXT_ZAIVKI, STATUS_ZAIVKI) 
@@ -150,20 +142,10 @@ def create_request_5(message):
         print(cursor.rowcount, "1 Запись успешно Вставлена") 
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
-        bot.send_message(message.chat.id, "Ошибка при Регистрации заявки".format(name = message.text))
-    finally:
-        if connection:
-            cursor.close()
-            connection.close()
-            print("Соединение с PostgreSQL закрыто")
+        bot.send_message(message.chat.id, "Ошибка при Регистрации заявки".format(name = message.text))   
 
 def create_request_2(message):    
-    try: 
-        connection = psycopg2.connect(  user = config.USER, 
-                                        password = config.PASSWORD, 
-                                        host = config.HOST, 
-                                        port = config.PORT, 
-                                        database = config.DATABASE)        
+    try:             
         cursor = connection.cursor()              
         cursor.execute("""Update CRM_TABLE set TEXT_DOP_ZAIVKI = ('{}') WHERE ID = %s""".format(message.text), (text_1))
         connection.commit()
@@ -171,20 +153,10 @@ def create_request_2(message):
         bot.send_message(message.chat.id, "Запись успешно обновлена".format(name = message.text))   
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
-        bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))
-    finally:                        
-        if connection:                           
-            cursor.close()
-            connection.close()
-            print("Соединение с PostgreSQL закрыто")
+        bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))    
 
 def create_request_3(message):    
-    try: 
-        connection = psycopg2.connect(  user = config.USER, 
-                                        password = config.PASSWORD, 
-                                        host = config.HOST, 
-                                        port = config.PORT, 
-                                        database = config.DATABASE)            
+    try:                  
         cursor = connection.cursor()                              
         cursor.execute("""Delete from CRM_TABLE where id = ('{}')""".format(message.text))
         connection.commit()
@@ -192,20 +164,10 @@ def create_request_3(message):
         bot.send_message(message.chat.id, "Запись успешно удалена".format(name = message.text))  
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
-        bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))
-    finally:
-        if connection:
-            cursor.close()
-            connection.close()
-            print("Соединение с PostgreSQL закрыто")
+        bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text)) 
 
 def create_request_4(message):    
-    try: 
-        connection = psycopg2.connect(  user = config.USER, 
-                                        password = config.PASSWORD, 
-                                        host = config.HOST, 
-                                        port = config.PORT, 
-                                        database = config.DATABASE)            
+    try:                   
         cursor = connection.cursor()                              
         cursor.execute("SELECT * from CRM_TABLE where ID = ('{}')".format(message.text))
         connection.commit()
@@ -222,12 +184,7 @@ def create_request_4(message):
             bot.send_message(message.chat.id, raspis)  
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
-        bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))
-    finally:
-        if connection:
-            cursor.close()
-            connection.close()
-            print("Соединение с PostgreSQL закрыто")
+        bot.send_message(message.chat.id, "Ошибка при работе с PostgreSQL".format(name = message.text))    
 
 bot.polling(none_stop = True, timeout = 30)
     
